@@ -1,51 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Worker Example</title>
-</head>
-<body>
-  <h1>Web Worker Example</h1>
-  <button id="startButton">Start Worker</button>
-  <div id="output"></div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const startButton = document.getElementById('startButton');
-      const outputDiv = document.getElementById('output');
-      let worker;
-
-      // Event listener for the "Start Worker" button
-      startButton.addEventListener('click', () => {
-        if (!worker) {
-          // Create a new Web Worker
-          worker = new Worker(URL.createObjectURL(new Blob([`
-            // Listening for messages from the main thread
-            self.addEventListener('message', (event) => {
-              console.log('Message from main thread:', event.data);
-
-              // Sending a message back to the main thread
-              self.postMessage('Hello from the Web Worker!');
-            });
-          `], { type: 'application/javascript' })));
-
-          // Listening for messages from the Web Worker
-          worker.addEventListener('message', (event) => {
-            outputDiv.innerHTML += `<p>${event.data}</p>`;
-          });
-
-          startButton.textContent = 'Stop Worker';
-        } else {
-          // Terminate the Web Worker
-          worker.terminate();
-          worker = null;
-
-          startButton.textContent = 'Start Worker';
-          outputDiv.innerHTML = '';
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Open Button Click</title>
+    <!-- Include handtrackjs library -->
+    <script src="https://cdn.jsdelivr.net/npm/handtrackjs/dist/handtrack.min.js"></script>
+    <style>
+        body {
+            overflow: hidden;
         }
-      });
-    });
-  </script>
+
+        video,
+        canvas {
+            display: none;
+        }
+
+        img {
+            width: 300px;
+        }
+
+        .move {
+            animation: move 2s linear infinite;
+
+        }
+
+        @keyframes move {
+            to {
+                transform: translateX(400%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="car">
+        <img src="https://media.tenor.com/xbvEOgHWCvsAAAAC/car-move.gif" alt="" id="car">
+    </div>
+    <h1>Hand Open Button Click</h1>
+    <video id="myvideo" width="640" height="480" style="transform: scaleX(-1);"></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <button id="clickButton">Click me with an open hand!</button>
+    <p id="updatenote" style="display: none;">Please enable video</p>
+    <p id="gestureInfo" style="display: none;">P</p>
+
+    <script>
+        const video = document.getElementById("myvideo");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+        let clickButton = document.getElementById("clickButton");
+        let updateNote = document.getElementById("updatenote");
+        let gestureInfo = document.getElementById("updatenote");
+        let car = document.getElementById("car");
+
+        let isVideo = false;
+        let model = null;
+
+        const modelParams = {
+            flipHorizontal: true,
+            maxNumBoxes: 20,
+            iouThreshold: 0.5,
+            scoreThreshold: 0.6,
+        };
+
+        function startVideo() {
+            handTrack.startVideo(video).then(function (status) {
+                console.log("Video started", status);
+                if (status) {
+                    updateNote.innerText = "Video started. Now tracking";
+                    isVideo = true;
+                    runDetection();
+                } else {
+                    updateNote.innerText = "Please enable video";
+                }
+            });
+        }
+
+        function runDetection() {
+            const audio = new Audio('./evil.mp3');
+            model.detect(video).then(predictions => {
+                console.log("Predictions: ", predictions);
+                model.renderPredictions(predictions, canvas, context, video);
+
+                if (predictions && predictions.length > 0) {
+                    // Check if the hand is open
+                    const hand = predictions[0]; // Assuming there's only one hand in the frame
+                    console.log("Hand coordinates:", hand);
+
+                    if (hand.label === 'closed' && hand.score > 0.5) {
+                        // Hand is open, simulate a button click
+                        clickButton.style.background = "green";
+                        car.classList.add('move')
+                        car.style.animationPlayState = "running"
+                        // if (audio.paused) {
+                        //     audio.play();
+                        // }
+                    } else if (hand.label === 'open' && hand.score > 0.5) {
+                        // Hand is closed, simulate a button click
+                        clickButton.style.background = "red";
+                        car.style.animationPlayState = "paused"
+                        if (!audio.paused) {
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }
+
+                    } else {
+                        car.classList.add('move')
+                        car.style.animationPlayState = "running"
+                        if (!audio.paused) {
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }
+                    }
+                }
+                const indexFinger = predictions.find(hand => hand.label === 'index_finger');
+
+                if (indexFinger && indexFinger.score > 0.7) { // Adjust the score threshold as needed
+                    // Simulate a button click
+                    clickButton.click();
+                    gestureInfo.innerText = "Button clicked with index finger!";
+                } else {
+                    gestureInfo.innerText = "Perform a specific hand gesture to click the button.";
+                }
+
+
+                if (isVideo) {
+                    requestAnimationFrame(runDetection);
+                }
+            });
+        }
+
+        // Load the model.
+        handTrack.load(modelParams).then(lmodel => {
+            model = lmodel;
+            updateNote.innerText = "Loaded Model!";
+            startVideo();
+            // Start video after loading the model
+        });
+
+        // Add alert message when button is clicked
+        clickButton.addEventListener('click', function () {
+            alert('Button clicked with an open hand!');
+        });
+    </script>
 </body>
+
 </html>
