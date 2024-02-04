@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Click with WebGazer</title>
+  <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+  <style>
+    button {
+      position: fixed !important;
+      z-index: 1020;
+    }
+  </style>
+</head>
+<body>
+
+<div style="text-align: center;">
+  <button id="myButton" onclick="hello()">Click me!</button>
+</div>
+
+<script>
+  function hello() {
+    alert("Hello!");
+  }
+
+  webgazer
+    .setGazeListener(function (data, elapsedTime) {
+      if (data == null) {
+        return;
+      }
+      console.log(data.x, data.y)
+      console.log(elapsedTime)
+
+      // Update the button position based on gaze coordinates
+      var button = document.getElementById('myButton');
+      button.style.top = data.y + "px";
+      button.style.left = data.x + "px";
+      button.style.transition = "0.9s"
+
+      // Check if the gaze is within a specific area, e.g., the button
+      var buttonRect = button.getBoundingClientRect();
+      if (
+        data.x/2 >= buttonRect.left &&
+        data.x/2 <= buttonRect.right &&
+        data.y/2 >= buttonRect.top &&
+        data.y/2 <= buttonRect.bottom
+      ) {
+        // If gaze is within the button area, trigger a click
+        // button.click();
+        button.style.background = "red"
+      }
+    })
+    .begin()
+    .showPredictionPoints(true);
+</script>
+
+</body>
+</html>

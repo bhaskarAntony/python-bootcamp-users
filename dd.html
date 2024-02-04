@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Worker Example</title>
+</head>
+<body>
+  <h1>Web Worker Example</h1>
+  <button id="startButton">Start Worker</button>
+  <div id="output"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const startButton = document.getElementById('startButton');
+      const outputDiv = document.getElementById('output');
+      let worker;
+
+      // Event listener for the "Start Worker" button
+      startButton.addEventListener('click', () => {
+        if (!worker) {
+          // Create a new Web Worker
+          worker = new Worker(URL.createObjectURL(new Blob([`
+            // Listening for messages from the main thread
+            self.addEventListener('message', (event) => {
+              console.log('Message from main thread:', event.data);
+
+              // Sending a message back to the main thread
+              self.postMessage('Hello from the Web Worker!');
+            });
+          `], { type: 'application/javascript' })));
+
+          // Listening for messages from the Web Worker
+          worker.addEventListener('message', (event) => {
+            outputDiv.innerHTML += `<p>${event.data}</p>`;
+          });
+
+          startButton.textContent = 'Stop Worker';
+        } else {
+          // Terminate the Web Worker
+          worker.terminate();
+          worker = null;
+
+          startButton.textContent = 'Start Worker';
+          outputDiv.innerHTML = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
