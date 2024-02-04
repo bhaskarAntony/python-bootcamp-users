@@ -60,7 +60,7 @@
             border-radius: 100px !important;
             overflow: hidden;
         }
-        .users::before, button::before{
+        .users::before{
             content: "";
             position: absolute;
             width: 100%;
@@ -71,11 +71,11 @@
             z-index: -3;
             animation: anim2 1s linear infinite;
             transform: scale(1.1);
-            filter: blur(7px);
+            /* filter: blur(7px); */
             left: 0;
             top: 0;
         }
-        .users::after, button:after{
+        .users::after{
             content: "";
             position: absolute;
             width: 100%;
@@ -90,15 +90,7 @@
             left: 0;
             top: 0;
         }
-        button:after{
-            backdrop-filter: blur(1px);
-        }
-        button::before{
-            width: 200%;
-            height: 250%;
-            left: -50%;
-            top: -50%;
-        }
+
         @keyframes anim{
             from{
                 transform: scale(1.2);
@@ -111,11 +103,11 @@
         @keyframes anim2{
             from{
                 /* background: linear-gradient(0deg, #d96868, #000000); */
-                transform: rotate(0deg)  scale(1.1);
+                transform: rotate(0deg)  scale(1.03);
             }
             to{
                 /* background: linear-gradient(360deg, #fa65df, #000000); */
-                transform: rotate(360deg)  scale(1.1);
+                transform: rotate(360deg)  scale(1.03);
             }
         }
        
@@ -136,7 +128,7 @@
                 <small class="text-white">users</small>
             </div>
          <center>
-            <button id="refresh" onclick=" rf()" class="btn bg-black text-white mt-5">Refresh</button>
+            <button id="refresh" onclick=" rf()" class="btn bg-white text-black mt-5">Refresh</button>
          </center>
          <ul class="users-list"></ul>
         </div>
