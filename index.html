@@ -17,8 +17,7 @@
             min-height: 100vh;
             justify-content: center;
             align-items: center;
-            /* background: radial-gradient(#1b1b1b, #000000); */
-            background-color: #0c0c0c;
+            background: radial-gradient(#014214, #005e1c);
           
         }
         .card{
@@ -41,9 +40,37 @@
             outline-offset: 5px;
             flex-direction: column;
             position: relative;
-            background-color: #ffffff !important;
-            /* animation: anim2 1s linear infinite alternate; */
-            z-index: 3;
+            background-color: #ffffff;
+            z-index: 5;
+        }
+        .users::before{
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff79;
+            border-radius: 100px;
+            z-index: -8;
+            animation: anim 1s linear infinite alternate;
+        }
+        .users::after{
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff39;
+            border-radius: 100px;
+            z-index: -8;
+            animation: anim 1s linear infinite alternate;
+            animation-delay: 1s;
+        }
+        @keyframes anim{
+            from{
+                transform: scale(0.8);
+            }
+            to{
+                transform: scale(1.5);
+            }
         }
         button{
             margin-top: 30px;
@@ -54,89 +81,36 @@
             font-size: 1.2rem;
             border-radius: 10px;
             background-color: #000;
-            color: #000000 !important;
-            position: relative;
-            z-index: 3;
-            border-radius: 100px !important;
-            overflow: hidden;
+            color: #fff;
         }
-        .users::before{
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff79;
-            background: conic-gradient( #ff044f, #9317f3, #dcff18, #39ff50,#ff24de, #6be5e9);
-            border-radius: 100px;
-            z-index: -3;
-            animation: anim2 1s linear infinite;
-            transform: scale(1.1);
-            /* filter: blur(7px); */
-            left: 0;
-            top: 0;
-        }
-        .users::after{
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: #9e9e9e50;
-            border-radius: 100px;
-            z-index: -1;
-            /* animation: anim 1s linear infinite alternate; */
-            animation-delay: 1s;
-            backdrop-filter: blur(40px);
-            box-sizing:inset 1px 1px 2px #fff;
-            left: 0;
-            top: 0;
-        }
-
-        @keyframes anim{
-            from{
-                transform: scale(1.2);
-                
-            }
-            to{
-                transform: scale(1.5);
-            }
-        }
-        @keyframes anim2{
-            from{
-                /* background: linear-gradient(0deg, #d96868, #000000); */
-                transform: rotate(0deg)  scale(1.03);
-            }
-            to{
-                /* background: linear-gradient(360deg, #fa65df, #000000); */
-                transform: rotate(360deg)  scale(1.03);
-            }
-        }
-       
         button:active{
             transform: scale(0.9);
         }
+
     </style>
 </head>
 <body>
     <div class="container-fluid flex-column gap-3">
         <div class="text-center text-white">
-            <span class="fs-3 d-block"><b class="text-warning fw-bold">Python</b> Bootcamp Registrations</span>
+            <span class="fs-3 d-block"><b>python</b> Bootcamp Registrations</span>
         <span class="fs-5">Refresh the page to see the new registrations...</span>
         </div>
         <div class="p-3 p-md-5">
-           <a href="/dd.html" class="text-decoration-none">
             <div class="users">
-                <h1 id="data-length" class="display-1 fw-bold text-white"></h1>
-                <small class="text-white">users</small>
+                <h1 id="data-length" class="fs-1"></h1>
+                <small class="text-primary">users</small>
             </div>
-           </a>
-         <center>
-            <button id="refresh" onclick=" rf()" class="btn bg-white text-black mt-5">Refresh</button>
-         </center>
-         <ul class="users-list"></ul>
+           <center>
+            <button class="btn btn-warning p-2 fs-5 rounded-pill px-5 mt-5" onclick="rf()">Refresh</button> <br>
+            <button class="btn btn-success p-2 fs-5 rounded-pill px-4" id="btn">Download Excel</button>
+           </center>
+
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script>
+           var userdata = [] 
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('data-length').innerHTML = `
             
@@ -148,6 +122,7 @@
             const apiUrl = 'https://stormy-flannel-nightgown-ox.cyclic.app/api/python/list';
 
             // Fetch data from the API
+         
             fetch(apiUrl)
                 .then(response => {
                     if (!response.ok) {
@@ -158,21 +133,37 @@
                 .then(data => {
                     // Display the length of the data
                     document.getElementById('data-length').innerText = ` ${data.length}`;
-                    
-                    data.forEach(element => {
-                        var ul = document.getElementById('users-list');
-                        var li  = document.createElement('li');
-                        li.innerText = element.name;
-                        ul.appendChild(li)
-                    });
+                    userdata = data
+                  
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                 });
+               
         });
         function rf(){
             window.location.reload()
         }
+        function EX(data){
+            const csvContent = [
+                Object.keys(data[0]).join(","),
+                ...data.map(obj => Object.values(obj).map(value => JSON.stringify(value)).join(","))
+            ].join("\n");
+
+            // Create a Blob object with the CSV data
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+
+            // Save the file using FileSaver.js
+            saveAs(blob, "users.csv");
+                }
+                document.getElementById('btn').addEventListener('click', ()=>{
+                   if(userdata){
+                    EX(userdata);
+                   }
+                   else{
+                    alert('userData is not loaded')
+                   }
+                })
         
     </script>
 </body>
